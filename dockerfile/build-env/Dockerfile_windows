@@ -1,0 +1,27 @@
+﻿# escape=`
+FROM mcr.microsoft.com/windows/servercore:ltsc2022 as build-env
+
+LABEL maintainer "mikoto2000 <mikoto2000@gmail.com>"
+LABEL version="v21.7.1-1"
+LABEL description "node: 21.7.1"
+
+
+SHELL ["powershell", "-c"]
+
+RUN Set-ExecutionPolicy Unrestricted -Force; `
+    iex ((New-Object System.Net.WebClient).DownloadString('https://boxstarter.org/bootstrapper.ps1')); `
+    get-boxstarter -Force; `
+    Install-BoxstarterPackage https://raw.githubusercontent.com/nodejs/node/v21.7.1/tools/bootstrap/windows_boxstarter -DisableReboots; `
+    refreshenv
+
+RUN & 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe' modify `
+    --installPath 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools' `
+    --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+    --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+    --add Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre `
+    --quiet
+
+RUN choco install -y nodejs --version='21.7.1'
+
+CMD ["powershell"]
+
