@@ -17,7 +17,7 @@ jobs:
         Write-Host $version
         Write-Output "VERSION=$version" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
     - name: Build
-      run: docker run -it --rm -v "$(pwd):C:/work" --workdir /work mikoto2000/node-buildkit:21.7.1-windows powershell -c .\build_windows.ps1 ${Env:VERSION}
+      run: docker run -v "$(pwd):C:/work" --workdir /work mikoto2000/node-buildkit:21.7.1-windows powershell -c .\build_windows.ps1 ${Env:VERSION}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
