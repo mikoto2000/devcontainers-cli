@@ -25,7 +25,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: devcontainer-windows
-        path: ./dist/devcontainer-windows-x64-${Env:VERSION}.exe
+        path: ./dist/devcontainer-windows-x64-${{ env.VERSION }}.exe
 
   release:
     needs: [build-windows]
