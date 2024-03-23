@@ -15,7 +15,10 @@ jobs:
         Write-Host $tagName
         $version = $tagName.Replace("v", "")
         Write-Host $version
+        Write-Output "TAG_NAME=$tagName" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
         Write-Output "VERSION=$version" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
+    - name: Checkout upstream
+      run: git clone --depth 1 -b ${Env:VERSION} https://github.com/devcontainres/cli upstream
     - name: Build
       run: docker run -v "$(pwd):C:/work" --workdir /work mikoto2000/node-buildkit:21.7.1-windows powershell -c .\build_windows.ps1 ${Env:VERSION}
     - name: Upload artifact
