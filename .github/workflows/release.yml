@@ -28,7 +28,7 @@ jobs:
         path: ./dist/devcontainer-windows-x64-${{ env.VERSION }}.exe
 
   build-linux:
-    runs-on: ubuntu-2022
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Get version number
