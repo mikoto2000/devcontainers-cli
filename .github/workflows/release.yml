@@ -33,7 +33,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Get version number
       run: |
-        $TAG_NAME = echo "${{ github.ref }}" | cut -d '/' -f 3
+        $TAG_NAME = $(echo "${{ github.ref }}" | cut -d '/' -f 3)
         echo $TAG_NAME
         $VERSION = $(echo $TAG_NAME | sed -e 's/^v//')
         echo $VERSION
