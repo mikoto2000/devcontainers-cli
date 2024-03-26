@@ -47,7 +47,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: devcontainer-linux
-        path: ./dist/devcontainer-linux-x64-${{ env.VERSION }}.exe
+        path: ./dist/devcontainer-linux-x64-${{ env.VERSION }}
 
   release:
     needs: [build-linux, build-windows]
