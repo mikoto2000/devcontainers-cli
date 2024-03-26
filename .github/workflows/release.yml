@@ -27,8 +27,30 @@ jobs:
         name: devcontainer-windows
         path: ./dist/devcontainer-windows-x64-${{ env.VERSION }}.exe
 
+  build-linux:
+    runs-on: ubuntu-2022
+    steps:
+    - uses: actions/checkout@v4
+    - name: Get version number
+      run: |
+        $TAG_NAME = echo "${{ github.ref }}" | cut -d '/' -f 3
+        echo $TAG_NAME
+        $VERSION = $(echo $TAG_NAME | sed -e 's/^v//')
+        echo $VERSION
+        echo "TAG_NAME=$TAG_NAME" >> $env:GITHUB_ENV
+        echo "VERSION=$VERSION" >> $env:GITHUB_ENV
+    - name: Checkout upstream
+      run: git clone --depth 1 -b ${Env:TAG_NAME} https://github.com/devcontainers/cli upstream
+    - name: Build
+      run: docker run -v "$(pwd):C:/work" --workdir /work node:21.7.1-bookworm ./build_linux.bash ${Env:VERSION}
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: devcontainer-linux
+        path: ./dist/devcontainer-linux-x64-${{ env.VERSION }}.exe
+
   release:
-    needs: [build-windows]
+    needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
     - name: Download windows artifact
