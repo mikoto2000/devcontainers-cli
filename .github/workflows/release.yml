@@ -18,7 +18,7 @@ jobs:
         Write-Output "TAG_NAME=$tagName" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
         Write-Output "VERSION=$version" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
     - name: Checkout upstream
-      run: git clone --depth 1 -b ${Env:TAG_NAME} https://github.com/devcontainers/cli upstream
+      run: git clone --depth 1 -b ${Env:TAG_NAME} https://github.com/devcontainers/cli.git upstream
     - name: Build
       run: docker run -v "$(pwd):C:/work" --workdir /work mikoto2000/node-buildkit:21.7.1-windows powershell -c .\build_windows.ps1 ${Env:VERSION}
     - name: Upload artifact
@@ -40,9 +40,7 @@ jobs:
         echo "TAG_NAME=${TAG_NAME}" >> $env:GITHUB_ENV
         echo "VERSION=${VERSION}" >> $env:GITHUB_ENV
     - name: Checkout upstream
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: git clone --depth 1 -b ${Env:TAG_NAME} https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/devcontainers/cli upstream
+      run: git clone --depth 1 -b ${Env:TAG_NAME} https://github.com/devcontainers/cli.git upstream
     - name: Build
       run: docker run -v "$(pwd):C:/work" --workdir /work node:21.7.1-bookworm ./build_linux.bash ${Env:VERSION}
     - name: Upload artifact
