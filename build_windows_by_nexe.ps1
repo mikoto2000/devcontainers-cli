@@ -33,5 +33,5 @@ npm i -g yarn
 yarn
 yarn compile-prod
 
-npx -y nexe -i ./devcontainer.js -r="scripts/updateUID.Dockerfile" -t ${NEXE_TARGET} -b -o ${BIN_PATH}
+npx -y nexe --loglevel="verbose" -i ./devcontainer.js -r="scripts/updateUID.Dockerfile" -t ${NEXE_TARGET} -b -o ${BIN_PATH}
 
