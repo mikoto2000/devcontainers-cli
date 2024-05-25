@@ -34,22 +34,19 @@ jobs:
         $tagName = "${{ github.ref }}".Split("/")[2]
         $tagName = "${{ github.ref }}".Split("/")[2]
         Write-Host $tagName
-        $version = $tagName.Replace("v", "")
-        Write-Host $version
         $upstreamTagName = $tagName.Split("-")[0]
         Write-Host $upstreamTagName
         Write-Output "TAG_NAME=$tagName" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
-        Write-Output "VERSION=$version" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
         Write-Output "UPSTREAM_TAG_NAME=$upstreamTagName" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
     - name: Checkout upstream
       run: git clone --depth 1 -b ${Env:UPSTREAM_TAG_NAME} https://github.com/devcontainers/cli.git upstream
     - name: Build
-      run: .\build_windows_by_nexe.ps1 ${Env:VERSION} ${Env:NODE_VERSION}
+      run: .\build_windows_by_nexe.ps1 ${Env:TAG_NAME} ${Env:NODE_VERSION}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: devcontainer-windows
-        path: ./dist/devcontainer-windows-x64-${{ env.VERSION }}.exe
+        path: ./dist/devcontainer-windows-x64-${{ env.TAG_NAME }}.exe
 
   build-linux:
     runs-on: ubuntu-22.04
@@ -67,22 +64,19 @@ jobs:
       run: |
         TAG_NAME=$(echo "${{ github.ref }}" | cut -d '/' -f 3)
         echo $TAG_NAME
-        VERSION=$(echo $TAG_NAME | sed -e 's/^v//')
         UPSTREAM_TAG_NAME=$(echo ${TAG_NAME} | cut -d '-' -f 1)
         echo $UPSTREAM_TAG_NAME
-        echo $VERSION
         echo "TAG_NAME=${TAG_NAME}" >> ${GITHUB_ENV}
-        echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
         echo "UPSTREAM_TAG_NAME=${UPSTREAM_TAG_NAME}" >> ${GITHUB_ENV}
     - name: Checkout upstream
       run: git clone --depth 1 -b ${UPSTREAM_TAG_NAME} https://github.com/devcontainers/cli.git upstream
     - name: Build
-      run: bash ./build_linux_by_nexe.bash ${VERSION} ${NODE_VERSION}
+      run: bash ./build_linux_by_nexe.bash ${TAG_NAME} ${NODE_VERSION}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: devcontainer-linux
-        path: ./dist/devcontainer-linux-x64-${{ env.VERSION }}
+        path: ./dist/devcontainer-linux-x64-${{ env.TAG_NAME }}
 
   release:
     needs: [build-linux, build-windows]
