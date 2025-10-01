@@ -20,7 +20,7 @@ fi
 APP_VERSION="${1}"
 NODE_VERSION="${2}"
 OS="darwin"
-ARCH="arm64"
+ARCH="x64"
 APP_SUFFIX="${OS}-${ARCH}-${APP_VERSION}"
 NEXE_TARGET="${OS}-${ARCH}-${NODE_VERSION}"
 

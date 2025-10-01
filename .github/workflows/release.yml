@@ -79,7 +79,7 @@ jobs:
         path: ./dist/devcontainer-linux-x64-${{ env.TAG_NAME }}
 
   build-darwin:
-    runs-on: macos-15
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -106,7 +106,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: devcontainer-darwin
-        path: ./dist/devcontainer-darwin-arm64-${{ env.TAG_NAME }}
+        path: ./dist/devcontainer-darwin-x64-${{ env.TAG_NAME }}
 
   release:
     needs: [build-linux, build-windows, build-darwin]
