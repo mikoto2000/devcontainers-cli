@@ -79,7 +79,7 @@ jobs:
         path: ./dist/devcontainer-linux-x64-${{ env.TAG_NAME }}
 
   build-darwin:
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
