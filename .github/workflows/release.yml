@@ -5,7 +5,6 @@ on:
     tags: [ "v*" ]
 
 env:
-  PYTHON_VERSION: '3.11.2'
   NODE_VERSION: '24.12.0'
 
 jobs:
@@ -13,22 +12,14 @@ jobs:
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ env.PYTHON_VERSION }}
-      uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    - name: Install deps
-      run: choco install nasm
     - uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
+    - uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: "latest"
     - name: Environment Information
       run: npx envinfo
-    - name: Cache nexe prebuild binaries
-      uses: actions/cache@v4
-      with:
-        path: ~/.nexe
-        key: windows
     - name: Get version number
       run: |
         $tagName = "${{ github.ref }}".Split("/")[2]
@@ -40,8 +31,10 @@ jobs:
         Write-Output "UPSTREAM_TAG_NAME=$upstreamTagName" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
     - name: Checkout upstream
       run: git clone --depth 1 -b ${Env:UPSTREAM_TAG_NAME} https://github.com/devcontainers/cli.git upstream
+    - name: Apply upstream patch
+      run: git -C upstream apply ../upstream-bun.patch
     - name: Build
-      run: .\build_windows_by_nexe.ps1 ${Env:TAG_NAME} ${Env:NODE_VERSION}
+      run: .\build_windows_by_bun.ps1 ${Env:TAG_NAME}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
@@ -55,11 +48,9 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-    - name: Cache nexe prebuild binaries
-      uses: actions/cache@v4
+    - uses: oven-sh/setup-bun@v1
       with:
-        path: ~/.nexe
-        key: linux
+        bun-version: "latest"
     - name: Get version number
       run: |
         TAG_NAME=$(echo "${{ github.ref }}" | cut -d '/' -f 3)
@@ -70,8 +61,10 @@ jobs:
         echo "UPSTREAM_TAG_NAME=${UPSTREAM_TAG_NAME}" >> ${GITHUB_ENV}
     - name: Checkout upstream
       run: git clone --depth 1 -b ${UPSTREAM_TAG_NAME} https://github.com/devcontainers/cli.git upstream
+    - name: Apply upstream patch
+      run: git -C upstream apply ../upstream-bun.patch
     - name: Build
-      run: bash ./build_linux_by_nexe.bash ${TAG_NAME} ${NODE_VERSION}
+      run: bash ./build_linux_by_bun.bash ${TAG_NAME}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
@@ -85,15 +78,9 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-    - name: Set up Python ${{ env.PYTHON_VERSION }}
-      uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+    - uses: oven-sh/setup-bun@v1
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    - name: Cache nexe prebuild binaries
-      uses: actions/cache@v4
-      with:
-        path: ~/.nexe
-        key: darwin
+        bun-version: "latest"
     - name: Get version number
       run: |
         TAG_NAME=$(echo "${{ github.ref }}" | cut -d '/' -f 3)
@@ -104,8 +91,10 @@ jobs:
         echo "UPSTREAM_TAG_NAME=${UPSTREAM_TAG_NAME}" >> ${GITHUB_ENV}
     - name: Checkout upstream
       run: git clone --depth 1 -b ${UPSTREAM_TAG_NAME} https://github.com/devcontainers/cli.git upstream
+    - name: Apply upstream patch
+      run: git -C upstream apply ../upstream-bun.patch
     - name: Build
-      run: bash ./build_darwin_by_nexe.bash ${TAG_NAME} ${NODE_VERSION}
+      run: bash ./build_darwin_by_bun.bash ${TAG_NAME}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:

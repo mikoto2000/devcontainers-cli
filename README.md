@@ -11,7 +11,7 @@ clone 直後の `upstream` に修正を適用する。
 
 ```sh
 git clone --depth 1 -b v0.68.0 https://github.com/devcontainers/cli.git upstream
-git apply ./upstream-bun.patch
+git -C upstream apply ../upstream-bun.patch
 ```
 
 ### Windows
