@@ -16,9 +16,9 @@ jobs:
           - arch: x64
             bun_target: bun-windows-x64
             runner: windows-2022
-          - arch: arm64
-            bun_target: bun-windows-arm64
-            runner: windows-11-arm
+#          - arch: arm64
+#            bun_target: bun-windows-arm64
+#            runner: windows-11-arm
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
