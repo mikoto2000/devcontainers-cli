@@ -2,9 +2,11 @@
 #
 # 引数:
 #     Version: ビルドしたバイナリのふぃある名に付与するバージョン番号
+#     Arch: 出力する CPU アーキテクチャ
 
 Param(
-    [string]$Version
+    [string]$Version,
+    [string]$Arch = "x64"
 )
 
 # Version が指定されていなかった場合即終了する
@@ -13,7 +15,10 @@ if ([String]::IsNullOrEmpty($Version)) {
     return 1
 }
 $OS="windows"
-$ARCH="x64"
+$ARCH=$Arch
+if ([String]::IsNullOrEmpty($env:BUN_TARGET)) {
+    $env:BUN_TARGET="bun-windows-$ARCH"
+}
 $SUFFIX="${OS}-${ARCH}-${Version}"
 
 $CURRENT_DIR = . Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -27,6 +32,6 @@ yarn compile-prod
 
 cd $CURRENT_DIR
 
-bun build --compile --target=bun-windows-x64 `
+bun build --compile --target=$env:BUN_TARGET `
     --outfile ${BIN_PATH} `
     ./upstream/dist/spec-node/devContainersSpecCLI.js

@@ -3,7 +3,7 @@
 # build_darwin_by_bun.bash
 #
 # Usage:
-#     build_darwin_by_bun.bash TAG_NAME
+#     build_darwin_by_bun.bash TAG_NAME [ARCH]
 #
 
 # 引数チェック
@@ -14,12 +14,17 @@ fi
 
 VERSION="${1}"
 OS="darwin"
-ARCH="$(uname -m)"
-if [ "${ARCH}" = "arm64" ]; then
-  BUN_TARGET="bun-darwin-arm64"
-else
+ARCH="${2:-$(uname -m)}"
+if [ "${ARCH}" = "x86_64" ]; then
   ARCH="x64"
-  BUN_TARGET="bun-darwin-x64"
+fi
+if [ -z "${BUN_TARGET}" ]; then
+  if [ "${ARCH}" = "arm64" ]; then
+    BUN_TARGET="bun-darwin-arm64"
+  else
+    ARCH="x64"
+    BUN_TARGET="bun-darwin-x64"
+  fi
 fi
 SUFFIX="${OS}-${ARCH}-${VERSION}"
 

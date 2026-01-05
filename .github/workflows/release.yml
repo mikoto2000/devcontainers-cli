@@ -10,6 +10,13 @@ env:
 jobs:
   build-windows:
     runs-on: windows-2022
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            bun_target: bun-windows-x64
+          - arch: arm64
+            bun_target: bun-windows-arm64
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -34,15 +41,24 @@ jobs:
     - name: Apply upstream patch
       run: git -C upstream apply ../upstream-bun.patch
     - name: Build
-      run: .\build_windows_by_bun.ps1 ${Env:TAG_NAME}
+      env:
+        BUN_TARGET: ${{ matrix.bun_target }}
+      run: .\build_windows_by_bun.ps1 ${Env:TAG_NAME} ${{ matrix.arch }}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: devcontainer-windows
-        path: ./dist/devcontainer-windows-x64-${{ env.TAG_NAME }}.exe
+        name: devcontainer-windows-${{ matrix.arch }}
+        path: ./dist/devcontainer-windows-${{ matrix.arch }}-${{ env.TAG_NAME }}.exe
 
   build-linux:
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            bun_target: bun-linux-x64
+          - arch: arm64
+            bun_target: bun-linux-arm64
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -64,15 +80,24 @@ jobs:
     - name: Apply upstream patch
       run: git -C upstream apply ../upstream-bun.patch
     - name: Build
-      run: bash ./build_linux_by_bun.bash ${TAG_NAME}
+      run: BUN_TARGET=${{ matrix.bun_target }} bash ./build_linux_by_bun.bash ${TAG_NAME} ${{ matrix.arch }}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: devcontainer-linux
-        path: ./dist/devcontainer-linux-x64-${{ env.TAG_NAME }}
+        name: devcontainer-linux-${{ matrix.arch }}
+        path: ./dist/devcontainer-linux-${{ matrix.arch }}-${{ env.TAG_NAME }}
 
   build-darwin:
-    runs-on: macos-14
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            bun_target: bun-darwin-x64
+            runner: macos-15-intel
+          - arch: arm64
+            bun_target: bun-darwin-arm64
+            runner: macos-14
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -94,12 +119,12 @@ jobs:
     - name: Apply upstream patch
       run: git -C upstream apply ../upstream-bun.patch
     - name: Build
-      run: bash ./build_darwin_by_bun.bash ${TAG_NAME}
+      run: BUN_TARGET=${{ matrix.bun_target }} bash ./build_darwin_by_bun.bash ${TAG_NAME} ${{ matrix.arch }}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: devcontainer-darwin
-        path: ./dist/devcontainer-darwin-x64-${{ env.TAG_NAME }}
+        name: devcontainer-darwin-${{ matrix.arch }}
+        path: ./dist/devcontainer-darwin-${{ matrix.arch }}-${{ env.TAG_NAME }}
 
   release:
     needs: [build-linux, build-windows, build-darwin]
