@@ -1,0 +1,83 @@
+diff --git a/esbuild.js b/esbuild.js
+index 2e386ea..b9685ab 100644
+--- a/esbuild.js
++++ b/esbuild.js
+@@ -66,6 +66,9 @@ const watch = process.argv.indexOf('--watch') !== -1;
+ 		platform: 'node',
+ 		target: 'node14.17.0',
+ 		mainFields: ['module', 'main'],
++		loader: {
++			'.Dockerfile': 'text',
++		},
+ 		outdir: 'dist',
+ 		plugins: [plugin],
+ 		banner: {
+diff --git a/src/spec-node/containerFeatures.ts b/src/spec-node/containerFeatures.ts
+index cc957c5..ae4c798 100644
+--- a/src/spec-node/containerFeatures.ts
++++ b/src/spec-node/containerFeatures.ts
+@@ -16,6 +16,7 @@ import { isEarlierVersion, parseVersion, runCommandNoPty } from '../spec-common/
+ import { getDevcontainerMetadata, getDevcontainerMetadataLabel, getImageBuildInfoFromImage, ImageBuildInfo, ImageMetadataEntry, imageMetadataLabel, MergedDevContainerConfig } from './imageMetadata';
+ import { supportsBuildContexts } from './dockerfileUtils';
+ import { ContainerError } from '../spec-common/errors';
++import updateUIDDockerfileText from '../../scripts/updateUID.Dockerfile';
+ 
+ // Escapes environment variable keys.
+ //
+@@ -455,7 +456,7 @@ export async function updateRemoteUserUID(params: DockerResolverParameters, merg
+ 	const destDockerfile = cliHost.path.join(await getCacheFolder(cliHost), `${dockerfileName}-${version}`);
+ 	const tmpDockerfile = `${destDockerfile}-${Date.now()}`;
+ 	await cliHost.mkdirp(cliHost.path.dirname(tmpDockerfile));
+-	await cliHost.writeFile(tmpDockerfile, await readLocalFile(srcDockerfile));
++	await cliHost.writeFile(tmpDockerfile, await readBundledFile(srcDockerfile, dockerfileName));
+ 	await cliHost.rename(tmpDockerfile, destDockerfile);
+ 	const emptyFolder = getEmptyContextFolder(common);
+ 	await cliHost.mkdirp(emptyFolder);
+@@ -487,3 +488,47 @@ function hasRegistryHostname(imageName: string) {
+ 	const slash = imageName.indexOf('/');
+ 	return dot !== -1 && slash !== -1 && dot < slash;
+ }
++
++async function readBundledFile(srcPath: string, filename: string): Promise<Buffer> {
++	try {
++		return await readLocalFile(srcPath);
++	} catch (err) {
++		const bun = (globalThis as { Bun?: { file?: (path: string) => { arrayBuffer: () => Promise<ArrayBuffer> } } }).Bun;
++		if (!bun?.file || (err as NodeJS.ErrnoException).code !== 'ENOENT') {
++			throw err;
++		}
++
++		const candidates = new Set<string>();
++		candidates.add(srcPath);
++		candidates.add(path.resolve(srcPath));
++		const relative = path.relative(process.cwd(), srcPath).replace(/\\/g, '/');
++		if (relative && !relative.startsWith('..')) {
++			candidates.add(relative);
++			candidates.add(`./${relative}`);
++		}
++		candidates.add(path.join('scripts', filename).replace(/\\/g, '/'));
++		candidates.add(`./${path.join('scripts', filename).replace(/\\/g, '/')}`);
++		candidates.add(path.join(__dirname, '..', '..', 'scripts', filename));
++		const scriptsIndex = srcPath.replace(/\\/g, '/').indexOf('/scripts/');
++		if (scriptsIndex !== -1) {
++			const suffix = srcPath.replace(/\\/g, '/').slice(scriptsIndex + 1);
++			candidates.add(suffix);
++			candidates.add(`./${suffix}`);
++			candidates.add(`/${suffix}`);
++		}
++
++		for (const candidate of candidates) {
++			try {
++				return Buffer.from(await bun.file(candidate).arrayBuffer());
++			} catch {
++				// Try next candidate.
++			}
++		}
++
++		if (filename === 'updateUID.Dockerfile') {
++			return Buffer.from(updateUIDDockerfileText);
++		}
++
++		throw err;
++	}
++}
